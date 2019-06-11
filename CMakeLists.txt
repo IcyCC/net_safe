@@ -6,4 +6,9 @@ set(CMAKE_CXX_STANDARD 14)
 add_executable(net_safe
         src/dh.cpp
         src/dh.h
-        tests/test_dh.cpp)
+        src/sha1.c
+        src/sha1.h
+        src/util.cpp
+        src/util.h
+        tests/test_dh.cpp
+        )
