@@ -11,4 +11,4 @@ add_executable(net_safe
         src/util.cpp
         src/util.h
         tests/test_dh.cpp
-        src/SSLHandler.cpp src/SSLHandler.h)
+        src/SSLHandler.cpp src/SSLHandler.h src/CA.cpp src/CA.h)
