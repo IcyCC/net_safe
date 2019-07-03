@@ -8,6 +8,7 @@
 #include<string>
 
 #include "CA.h"
+#include "Codec.h"
 
 class  SSLContext {
 private:
@@ -53,6 +54,7 @@ private:
 
     std::string _buffer;
 
+    LineCodec _codec;
 public:
     SSLHandler(int socketfd, const std::string & pub, std::string& pri, CA & ca); // 传入一个链接好的socket进行构造
 
