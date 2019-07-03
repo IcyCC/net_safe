@@ -8,6 +8,7 @@
 #include <iostream>
 #include <cmath>
 #include <ctime>
+#include <vector>
 
 
 class Util {
@@ -26,4 +27,6 @@ inline bool IsEndWith(const std::string & s, const std::string& m) {
     return true;
 }
 
+
+std::vector<std::string> split_string(std::string src, std::string sp);
 #endif //NET_SAFE_UTIL_H
