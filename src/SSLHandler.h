@@ -11,31 +11,27 @@
 
 class  SSLContext {
 private:
-    long  _i_pub; // 个人的共钥匙
-    long _i_pri; // 个人的私钥
-    CA _t_ca; // 对方的共钥
-    long _session_key; // 会话密钥
+    std::string _i_pri; // 个人的私钥
+    CA _t_ca; // 对方的证书
+    CA _i_ca; // 自己的证书
+    std::string _session_key; // 会话密钥
 public:
-    SSLContext(long i_pub, long i_pri, CA t_pub) :_i_pri(i_pri), _i_pub(i_pub), _t_ca(t_pub), _session_key(-1)
+    SSLContext(const std::string& i_pub, const std::string& i_pri, CA &t_pub) :_i_pri(i_pri),  _t_ca(t_pub), _session_key("")
     {}; //初始化
 
-    long GetIPub(){
-        return _i_pub;
-    }
-
-    long GetIPri(){
+    std::string GetIPri(){
         return _i_pri;
     };
 
-    long GetTPub(){
+    std::string GetTPub(){
         return _i_pri;
     };
 
-    long GetSessionKey() {
+    std::string GetSessionKey() {
         return _session_key;
     }
 
-    void SetSessionKey(long key) {
+    void SetSessionKey(const std::string &key) {
         _session_key = key;
     }
 
@@ -53,9 +49,10 @@ public:
 private:
     SSL_STATE _state;
     SSLContext _ctx;
+    int _socket_sfd;
 
 public:
-    SSLHandler(int socketfd, SSLContext& ctx); // 传入一个链接好的socket进行构造
+    SSLHandler(int socketfd, const std::string & pub, std::string& pri, CA & ca); // 传入一个链接好的socket进行构造
 
     int DoShakeHandsServer(); // 进行ssl握手
 
