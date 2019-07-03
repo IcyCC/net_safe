@@ -12,6 +12,7 @@
 
 class  SSLContext {
 private:
+    std::string _ca_pub;
     std::string _i_pri; // 个人的私钥
     CA _t_ca; // 对方的证书
     CA _i_ca; // 自己的证书
