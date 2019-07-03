@@ -1,24 +1,7 @@
 #include <vector>
 #include <iostream>
-
-
-std::vector<std::string> split_string(std::string src, std::string sp) {
-    std::string::size_type pos1, pos2 = 0;
-    std::vector<std::string> v;
-    pos2 = src.find(sp);
-    pos1 = 0;
-    while (std::string::npos != pos2) {
-        v.push_back(src.substr(pos1, pos2 - pos1));
-
-        pos1 = pos2 + sp.size();
-        pos2 = src.find(sp, pos1);
-    }
-    if (pos1 != src.length()) {
-        v.push_back(src.substr(pos1));
-    }
-    return v;
-}
-
+#include "rsa.h"
+#include "util.h"
 
 int bin_transform(int num, int bin_num[]) {
 
@@ -88,26 +71,23 @@ int get_gcd(int m, int n, int &x) {
     return n;
 }
 
-void get_public_key(int &key_n,  int &public_e, int &public_d)
-{
+void get_public_key_int(int &key_n, int &public_e, int &private_d) {
     int prime[5000];
     int count_Prime = produce_prime_number(prime);
 
-    srand((unsigned)time(NULL));
-    int ranNum1 = rand()%count_Prime;
-    int ranNum2 = rand()%count_Prime;
+    srand((unsigned) time(NULL));
+    int ranNum1 = rand() % count_Prime;
+    int ranNum2 = rand() % count_Prime;
     int p = prime[ranNum1], q = prime[ranNum2];
 
-    key_n = p*q;
+    key_n = p * q;
 
-    int on = (p-1)*(q-1);
+    int on = (p - 1) * (q - 1);
 
 
-    for(int j = 3; j < on; j+=1331)
-    {
-        int gcd = get_gcd(j, on, public_d);
-        if( gcd == 1 && public_d > 0)
-        {
+    for (int j = 3; j < on; j += 1331) {
+        int gcd = get_gcd(j, on, private_d);
+        if (gcd == 1 && private_d > 0) {
             public_e = j;
             break;
         }
@@ -115,7 +95,18 @@ void get_public_key(int &key_n,  int &public_e, int &public_d)
     }
 
 }
-std::string rsa_encrypt(std::string &input, int public_e, int public_n) {
+
+void get_public_key(std::string &public_key, std::string &private_key) {
+    int key_n, public_e, private_d = 0;
+    get_public_key_int(key_n, public_e, private_d);
+    public_key = std::to_string(public_e) + "_" + std::to_string(key_n);
+    private_key = std::to_string(private_d) + "_" + std::to_string(key_n);
+}
+
+std::string rsa_encrypt(std::string &input, std::string public_key) {
+    std::vector<std::string> key_parts = split_string(public_key, "_");
+    int public_e = atoi(key_parts[0].c_str());
+    int public_n = atoi(key_parts[1].c_str());
     std::string result;
     std::vector<long long> middle;
     for (auto &input_part:input) {
@@ -129,13 +120,16 @@ std::string rsa_encrypt(std::string &input, int public_e, int public_n) {
     return result;
 }
 
-std::string rsa_decrypt(std::string &input, int private_e, int private_n) {
+std::string rsa_decrypt(std::string &input, std::string private_key) {
+    std::vector<std::string> key_parts = split_string(private_key, "_");
+    int private_e = atoi(key_parts[0].c_str());
+    int private_n = atoi(key_parts[1].c_str());
     std::vector<std::string> input_parts = split_string(input, " ");
     std::string result;
-    for(auto input_part:input_parts) {
-        long long data  = std::atoll(input_part.c_str());
+    for (auto input_part:input_parts) {
+        long long data = std::atoll(input_part.c_str());
         data = mod(data, private_e, private_n);
-        result+= data;
+        result += data;
     }
     return result;
 }
