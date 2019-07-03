@@ -1,78 +1,55 @@
-//
-// Created by 苏畅 on 2019/7/3.
-//
-
-#ifndef NET_SAFE_AES_H
-#define NET_SAFE_AES_H
+#pragma once
 
 #include <vector>
+#include <string>
 
-typedef std::vector<unsigned char> ByteArray;
+
+typedef std::string ByteArray;
 
 #define BLOCK_SIZE 16
 
 class Aes256 {
 
 public:
-    Aes256(const ByteArray &key);
-
+    Aes256(const ByteArray& key);
     ~Aes256();
 
-    static ByteArray::size_type encrypt(const ByteArray &key, const ByteArray &plain, ByteArray &encrypted);
+    static ByteArray encrypt(const ByteArray& key, const ByteArray& plain);
+    static ByteArray encrypt(const ByteArray& key, const unsigned char* plain, const long plain_length);
+    static ByteArray decrypt(const ByteArray& key, const ByteArray& encrypted);
+    static ByteArray decrypt(const ByteArray& key, const unsigned char* encrypted, const long encrypted_length);
 
-    static ByteArray::size_type
-    encrypt(const ByteArray &key, const unsigned char *plain, const ByteArray::size_type plain_length,
-            ByteArray &encrypted);
+    long encrypt_start(const long plain_length, ByteArray& encrypted);
+    long encrypt_continue(const ByteArray& plain, ByteArray& encrypted);
+    long encrypt_continue(const unsigned char* plain, const long plain_length, ByteArray& encrypted);
+    long encrypt_end(ByteArray& encrypted);
 
-    static ByteArray::size_type decrypt(const ByteArray &key, const ByteArray &encrypted, ByteArray &plain);
-
-    static ByteArray::size_type
-    decrypt(const ByteArray &key, const unsigned char *encrypted, const ByteArray::size_type encrypted_length,
-            ByteArray &plain);
-
-    ByteArray::size_type encrypt_start(const ByteArray::size_type plain_length, ByteArray &encrypted);
-
-    ByteArray::size_type encrypt_continue(const ByteArray &plain, ByteArray &encrypted);
-
-    ByteArray::size_type
-    encrypt_continue(const unsigned char *plain, const ByteArray::size_type plain_length, ByteArray &encrypted);
-
-    ByteArray::size_type encrypt_end(ByteArray &encrypted);
-
-    ByteArray::size_type decrypt_start(const ByteArray::size_type encrypted_length);
-
-    ByteArray::size_type decrypt_continue(const ByteArray &encrypted, ByteArray &plain);
-
-    ByteArray::size_type
-    decrypt_continue(const unsigned char *encrypted, const ByteArray::size_type encrypted_length, ByteArray &plain);
-
-    ByteArray::size_type decrypt_end(ByteArray &plain);
+    long decrypt_start(const long encrypted_length);
+    long decrypt_continue(const ByteArray& encrypted, ByteArray& plain);
+    long decrypt_continue(const unsigned char* encrypted, const long encrypted_length, ByteArray& plain);
+    long decrypt_end(ByteArray& plain);
 
 private:
-    ByteArray m_key;
-    ByteArray m_salt;
-    ByteArray m_rkey;
+    ByteArray            m_key;
+    ByteArray            m_salt;
+    ByteArray            m_rkey;
 
-    unsigned char m_buffer[3 * BLOCK_SIZE];
-    unsigned char m_buffer_pos;
-    ByteArray::size_type m_remainingLength;
+    unsigned char        m_buffer[3 * BLOCK_SIZE];
+    unsigned char        m_buffer_pos;
+    long m_remainingLength;
 
-    bool m_decryptInitialized;
+    bool                 m_decryptInitialized;
 
-    void check_and_encrypt_buffer(ByteArray &encrypted);
-
-    void check_and_decrypt_buffer(ByteArray &plain);
+    void check_and_encrypt_buffer(ByteArray& encrypted);
+    void check_and_decrypt_buffer(ByteArray& plain);
 
     void encrypt(unsigned char *buffer);
-
     void decrypt(unsigned char *buffer);
 
     void expand_enc_key(unsigned char *rc);
-
     void expand_dec_key(unsigned char *rc);
 
     void sub_bytes(unsigned char *buffer);
-
     void sub_bytes_inv(unsigned char *buffer);
 
     void copy_key();
@@ -80,12 +57,9 @@ private:
     void add_round_key(unsigned char *buffer, const unsigned char round);
 
     void shift_rows(unsigned char *buffer);
-
     void shift_rows_inv(unsigned char *buffer);
 
     void mix_columns(unsigned char *buffer);
-
     void mix_columns_inv(unsigned char *buffer);
 };
 
-#endif //NET_SAFE_AES_H
