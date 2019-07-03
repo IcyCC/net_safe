@@ -17,4 +17,4 @@ add_executable(net_safe
         src/aes.cpp
         src/aes.h
 #        tests/test_dh.cpp
-        tests/test_aes.cpp)
+        tests/test_aes.cpp src/Codec.cpp src/Codec.h)
