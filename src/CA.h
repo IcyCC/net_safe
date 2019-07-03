@@ -7,6 +7,7 @@
 
 #include <string>
 #include "util.h"
+#include "rsa.h"
 
 class CA {
 public:
