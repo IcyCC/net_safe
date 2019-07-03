@@ -3,3 +3,10 @@
 //
 
 #include "SSLHandler.h"
+#include<sys/socket.h>
+#include<cstdio>
+#include <sys/fcntl.h>
+
+int SSLHandler::DoShakeHandsClient() {
+
+}

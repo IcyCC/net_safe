@@ -16,7 +16,9 @@ add_executable(net_safe
         src/CA.h
         src/aes.cpp
         src/aes.h
-        tests/test_dh.cpp
-        src/rsa.h
         src/rsa.cpp
-        tests/test_aes.cpp src/des.cpp src/rsa.h)
+        tests/test_aes.cpp
+        src/des.cpp
+        src/rsa.h
+        tests/test_dh.cpp
+)

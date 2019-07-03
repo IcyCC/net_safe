@@ -51,6 +51,8 @@ private:
     SSLContext _ctx;
     int _socket_sfd;
 
+    std::string _buffer;
+
 public:
     SSLHandler(int socketfd, const std::string & pub, std::string& pri, CA & ca); // 传入一个链接好的socket进行构造
 
