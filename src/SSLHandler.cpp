@@ -33,5 +33,5 @@ int SSLHandler::DoShakeHandsClient() {
     }
     CA server_ca;
     server_ca.Loads(res_ca_info[1]);
-    server_ca.
+    if (server_ca.Check() != )
 }
