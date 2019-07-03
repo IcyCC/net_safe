@@ -13,23 +13,23 @@
 		};
 	#endif
 
-	#define SHA1HashSize 20	//£¨µ¥Î»£º×Ö½Ú£©¼´160bitµÄÕªÒª³¤¶È
+	#define SHA1HashSize 20	//ï¼ˆå•ä½ï¼šå­—èŠ‚ï¼‰å³160bitçš„æ‘˜è¦é•¿åº¦
 
 	/*
 	* structure holds context information for the SHA-1 hashing operation
-	* ºÜ¶àµØ·½ÒÔ×Ö½Ú(8bit)Îªµ¥Î»²Ù×÷£¬ÕâÑùÒÆÎ»²Ù×÷²»ĞèÒªĞ´ÄÇÃ´¶à´Î
-	* ¸ÃÏµÍ³×Ö³¤Îª32Î»£¬Ò»¸öÕªÒª°üÀ¨5¸ö×Ö£¬Ò»¸ö¿é°üÀ¨16¸ö×Ö
+	* å¾ˆå¤šåœ°æ–¹ä»¥å­—èŠ‚(8bit)ä¸ºå•ä½æ“ä½œï¼Œè¿™æ ·ç§»ä½æ“ä½œä¸éœ€è¦å†™é‚£ä¹ˆå¤šæ¬¡
+	* è¯¥ç³»ç»Ÿå­—é•¿ä¸º32ä½ï¼Œä¸€ä¸ªæ‘˜è¦åŒ…æ‹¬5ä¸ªå­—ï¼Œä¸€ä¸ªå—åŒ…æ‹¬16ä¸ªå­—
 	*/
 	typedef struct SHA1Context
 	{
-		uint32_t Intermediate_Hash[SHA1HashSize / 4]; /* 5¸ö32Î»µÄ¼Ä´æÆ÷£¬´æ·ÅÉú³ÉµÄÕªÒª*/
-		uint32_t Length_Low;											 /* ÓÃÁ½¸ö32Î»µÄ±äÁ¿´æ³¤¶È */
+		uint32_t Intermediate_Hash[SHA1HashSize / 4]; /* 5ä¸ª32ä½çš„å¯„å­˜å™¨ï¼Œå­˜æ”¾ç”Ÿæˆçš„æ‘˜è¦*/
+		uint32_t Length_Low;											 /* ç”¨ä¸¤ä¸ª32ä½çš„å˜é‡å­˜é•¿åº¦ */
 		uint32_t Length_High;
 	
 		int_least16_t Message_Block_Index;
-		uint8_t Message_Block[64];									/* 512bitµÄ¿é£¬ÒÔ×Ö½ÚÎªµ¥Î»²Ù×÷£¨64*8£©=512-bit  */
-		int Computed;														/* ÊÇ·ñ´¦ÀíÍê×îºóµÄ¼ÆËã */
-		int Corrupted;														/* Òç³ö±êÖ¾ */
+		uint8_t Message_Block[64];									/* 512bitçš„å—ï¼Œä»¥å­—èŠ‚ä¸ºå•ä½æ“ä½œï¼ˆ64*8ï¼‰=512-bit  */
+		int Computed;														/* æ˜¯å¦å¤„ç†å®Œæœ€åçš„è®¡ç®— */
+		int Corrupted;														/* æº¢å‡ºæ ‡å¿— */
 	} SHA1Context;
 
 	int SHA1Reset(SHA1Context *);
