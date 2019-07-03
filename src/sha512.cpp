@@ -228,3 +228,19 @@ void SHA512PadMessage(SHA512Context *context)
 	}
 	SHA512ProcessMessageBlock(context);
 }
+
+int getHash(const char *input,uint8_t *res)
+{
+	SHA512Context sha;
+	int i, j, err=0;
+	
+	char *raw=new char[strlen(input)];
+    strcpy(raw , input);
+	
+	/* 开始测试 */
+	err = SHA512Reset(&sha);
+	err = SHA512Input(&sha,(const unsigned char *) raw,strlen(raw));
+	err = SHA512Result(&sha, res);
+	
+	return err;
+}
