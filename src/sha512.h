@@ -27,5 +27,5 @@ int SHA512Input(SHA512Context *, const uint8_t *, unsigned int);
 int SHA512Result(SHA512Context *, uint8_t Message_Digest[SHA512HashSize]);
 void SHA512PadMessage(SHA512Context *);
 void SHA512ProcessMessageBlock(SHA512Context *);
-int getHash(const char *,uint8_t *)
+int getHash(const char *,uint8_t *);
 

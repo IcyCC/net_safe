@@ -19,4 +19,6 @@ add_executable(net_safe
         src/des.cpp
         src/rsa.h
         tests/test_dh.cpp
+        src/sha512.cpp
+        src/sha512.h
 )
