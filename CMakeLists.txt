@@ -21,8 +21,8 @@ add_executable(net_safe
         src/sha512.h
         src/Codec.h
         src/Codec.cpp
-        tests/ssl_client.cpp
+        #tests/ssl_client.cpp
         #tests/ssl_server.cpp
-        )
+        tests/make_ca.cpp)
 
 
