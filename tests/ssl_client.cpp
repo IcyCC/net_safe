@@ -41,6 +41,7 @@ int main(int argc,char *argv[])
         exit(1);
     }
     auto ca = CA();
+    ca.Loads("2665_131237_68062 91355 91355 98464 98464 36794 69110 68062 74682 122104 85275 85275 98464 91355");
     auto ssl = SSLHandler(sockfd, "2665_131237", "23941_131237", "199665013_7769", ca);
     auto s = ssl.DoShakeHandsClient();
 

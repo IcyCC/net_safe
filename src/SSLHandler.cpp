@@ -11,6 +11,7 @@
 #include <errno.h>
 #include <unistd.h>
 #include "util.h"
+#include "rsa.h"
 
 SSLHandler::SSLHandler(int socketfd, const std::string &pub, const std::string &pri, const std::string ca_pub, CA &i_ca) {
     _socket_sfd = socketfd;
@@ -75,7 +76,9 @@ int SSLHandler::DoShakeHandsClient() {
     if (session_key_info[0] != "SESSION_KEY") {
         return  -1;
     }
-    _ctx._session_key = session_key_info[2];
+    auto session_key = rsa_decrypt(session_key_info[2], _ctx._i_pri);
+    // 校验hash
+    _ctx._session_key = session_key;
     // 会话密钥接受完成
 
     //发送ok
@@ -135,7 +138,8 @@ int SSLHandler::DoShakeHandsServer() {
 
     //会话密钥
     _ctx._session_key = "hello";
-    auto session_key_resp = _codec.encode(std::string("SESSION_KEY\r\n")+"1\r\n"+_ctx._session_key);
+    auto session_key = rsa_encrypt(_ctx._session_key, _ctx._t_ca._pub);
+    auto session_key_resp = _codec.encode(std::string("SESSION_KEY\r\n")+"hash\r\n"+session_key);
     ::write(_socket_sfd, session_key_resp.data(), session_key_resp.length());
 
     // 接受ok
