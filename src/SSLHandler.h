@@ -21,6 +21,9 @@ public:
     SSLContext(const std::string& i_pub, const std::string& i_pri, CA &t_ca) :_i_pri(i_pri),  _t_ca(t_ca), _session_key("")
     {}; //初始化
 
+    SSLContext(){};
+
+
     std::string GetIPri(){
         return _i_pri;
     };
@@ -57,7 +60,7 @@ private:
 
     LineCodec _codec;
 public:
-    SSLHandler(int socketfd, const std::string & pub, std::string& pri, CA & ca); // 传入一个链接好的socket进行构造
+    SSLHandler(int socketfd, const std::string & pub, const std::string& pri, const  std::string ca_pub , CA & i_ca); // 传入一个链接好的socket进行构造
 
     int DoShakeHandsServer(); // 进行ssl握手
 

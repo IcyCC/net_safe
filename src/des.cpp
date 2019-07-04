@@ -195,34 +195,3 @@ void myf(char* L,char* R,char* SK)
     myXOR(L,out4,32,R);
     strcpy(L,temp);
 }
-
-
-int main()
-{
-    char* M="0000000100100011010001010110011110001001101010111100110111101111";
-    char* K="0001001100110100010101110111100110011011101111001101111111110001";
-    char out[65],L[33],R[33],cipher[65], SK[16][49];
-
-    sub_key(K,SK);
-
-    std::cout<<cipher<<std::endl;
-
-    char middle[65];
-    myPermutation(cipher,middle,64,*IP);
-    std::cout<<middle<<std::endl;
-
-    strcpy(L,middle);
-    strcpy(R,middle+32);
-
-    std::cout<<middle<<std::endl;
-    for(int i =15;i>=0;i--) {
-        myf(L, R, *(SK+i));
-    }
-
-    strncpy(middle, R, 32);
-    strncpy(middle+32, L, 32);
-    myPermutation(middle,cipher,64,*C_IP);
-    std::cout<<M<<std::endl;
-    std::cout<<cipher<<std::endl;
-    return 0;
-}

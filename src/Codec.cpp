@@ -12,7 +12,7 @@ std::string LineCodec::tryDecode(std::string &data) {
     for(auto i : data) {
         res.push_back(i);
         if (IsEndWith(res,  "\r\n\r\n")) {
-            data = data.substr(flag);
+            data = data.substr(flag+1);
             res.pop_back();
             res.pop_back();
             return res;
