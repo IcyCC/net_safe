@@ -1,11 +1,13 @@
 #include <stdint.h>
 #include <string.h>
+#include <iostream>
 
 #define shaSuccess 0
 #define shaNull 1
 #define shaStateError 2
 
 #define SHA512HashSize 64	//（单位：字节）即512bit的摘要长度
+using namespace std;
 
 /*
 * 该系统字长为64位，一个摘要包括8个字，一个块包括16个字
@@ -22,10 +24,11 @@ typedef struct SHA512Context
 	int Corrupted;							/* 溢出标志 */
 }SHA512Context;
 
+/*uint8_t ： 即usigned char(stdint.h)*/
 int SHA512Reset(SHA512Context *);
 int SHA512Input(SHA512Context *, const uint8_t *, unsigned int);
 int SHA512Result(SHA512Context *, uint8_t Message_Digest[SHA512HashSize]);
 void SHA512PadMessage(SHA512Context *);
 void SHA512ProcessMessageBlock(SHA512Context *);
-int getHash(const char *,uint8_t *);
+std::string getHash(const char *); 
 
