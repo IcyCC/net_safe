@@ -8,6 +8,7 @@
 #include<sys/socket.h>
 #include<cstdio>
 #include <sys/fcntl.h>
+#include <errno.h>
 #include <unistd.h>
 #include "util.h"
 
@@ -16,9 +17,11 @@ SSLHandler::SSLHandler(int socketfd, const std::string &pub, const std::string &
     _ctx._i_ca = i_ca;
     _ctx._i_pri = pri;
     _ctx._ca_pub = ca_pub;
+    _state = SSL_STATE ::IDLE;
 }
 
 int SSLHandler::DoShakeHandsClient() {
+    _state = SSL_STATE ::SHAKEHANDS;
     auto hello = _codec.encode("HELLO");//发送hello
     ::write(_socket_sfd, hello.c_str(), hello.length());
     std::string server_ca_resp;
@@ -27,8 +30,8 @@ int SSLHandler::DoShakeHandsClient() {
     bzero(buf, sizeof(buf));
     while(true){
         int flag = ::read(_socket_sfd, buf, sizeof(buf));
-        if (flag < 0){
-            //return  -1;
+        if (flag < 0 && errno != EINTR && errno != EAGAIN){
+            return  -1;
         }
         res.append(buf);
         bzero(buf, sizeof(buf));
@@ -58,8 +61,8 @@ int SSLHandler::DoShakeHandsClient() {
     bzero(buf, sizeof(buf));
     while(true){
         int flag = ::read(_socket_sfd, buf, sizeof(buf));
-        if (flag<0){
-            //return  -1;
+        if (flag<0 && errno != EINTR && errno != EAGAIN){
+            return  -1;
         }
         res.append(buf);
         bzero(buf, sizeof(buf));
@@ -70,7 +73,7 @@ int SSLHandler::DoShakeHandsClient() {
     }
     auto session_key_info = split_string(session_key_resp, "\r\n");
     if (session_key_info[0] != "SESSION_KEY") {
-        //return  -1;
+        return  -1;
     }
     _ctx._session_key = session_key_info[2];
     // 会话密钥接受完成
@@ -78,20 +81,21 @@ int SSLHandler::DoShakeHandsClient() {
     //发送ok
     auto ok_req = _codec.encode("OK");
     ::write(_socket_sfd,ok_req.data(),ok_req.length());
-
+    _state = SSL_STATE ::TRANS;
     return 1;
 }
 
 
 int SSLHandler::DoShakeHandsServer() {
+    _state = SSL_STATE ::SHAKEHANDS;
     std::string hello_resp;
     std::string res;
     char buf[1024];
     bzero(buf, sizeof(buf));
     while(true){
         int flag = ::read(_socket_sfd, buf, sizeof(buf));
-        if (flag<0){
-            //return  -1;
+        if (flag<0&&errno != EINTR && errno != EAGAIN){
+            return  -1;
         }
         res.append(buf);
         bzero(buf, sizeof(buf));
@@ -102,7 +106,7 @@ int SSLHandler::DoShakeHandsServer() {
     }
     auto hello_resp_info = split_string(hello_resp, "\r\n");
     if(hello_resp_info[0] != "HELLO") {
-        //return  -1;
+        return  -1;
     }
 
     auto server_ca_resp = _codec.encode("CA\r\n" + _ctx._i_ca.Dumps());
@@ -114,7 +118,7 @@ int SSLHandler::DoShakeHandsServer() {
     while(true){
         int flag = ::read(_socket_sfd, buf, sizeof(buf));
         if (flag<0){
-            //return  -1;
+            return  -1;
         }
         res.append(buf);
         bzero(buf, sizeof(buf));
@@ -140,7 +144,7 @@ int SSLHandler::DoShakeHandsServer() {
     while(true){
         int flag = ::read(_socket_sfd, buf, sizeof(buf));
         if (flag<0){
-            //return  -1;
+            return  -1;
         }
         res.append(buf);
         bzero(buf, sizeof(buf));
@@ -154,6 +158,7 @@ int SSLHandler::DoShakeHandsServer() {
     if (ok_resp_info[0] != "OK"){
         return -1;
     }
+    _state = SSL_STATE ::TRANS;
     return  1;
 
 }
