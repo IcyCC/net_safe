@@ -3,6 +3,8 @@
 //
 
 #include "SSLHandler.h"
+#include "Codec.h"
+#include <string>
 #include<sys/socket.h>
 #include<cstdio>
 #include <sys/fcntl.h>
@@ -10,18 +12,21 @@
 #include "util.h"
 
 int SSLHandler::DoShakeHandsClient() {
-    auto hello = _codec.encode("Hello");//发送hello
+    auto hello = _codec.encode("HELLO");//发送hello
     ::write(_socket_sfd, hello.c_str(), hello.length());
     std::string server_ca_resp;
     std::string res;
     char buf[1024];
     bzero(buf, sizeof(1024));
     while(true){
-        ::read(_socket_sfd, buf, sizeof(buf));
-        res  = res + buf;
+        int flag = ::read(_socket_sfd, buf, sizeof(buf));
+        if (!flag){
+            return  -1;
+        }
+        res.append(buf);
         bzero(buf, sizeof(buf));
         server_ca_resp = _codec.tryDecode(res);
-        if(server_ca_resp!= ""){
+        if(!server_ca_resp.empty()){
             break;
         }
     }
@@ -33,5 +38,113 @@ int SSLHandler::DoShakeHandsClient() {
     }
     CA server_ca;
     server_ca.Loads(res_ca_info[1]);
-    if (server_ca.Check() != )
+    if (!server_ca.Check(_ctx._ca_pub)) {
+        // ca证书未签名
+        return -1;
+    }
+
+    auto self_ca = _codec.encode("CA\r\n"+_ctx._i_ca.Dumps());
+    ::write(_socket_sfd, self_ca.data(), self_ca.length()); // 发送自己的证书
+    std::string session_key_resp;
+
+    // 准备接受会话密钥
+    bzero(buf, sizeof(1024));
+    while(true){
+        int flag = ::read(_socket_sfd, buf, sizeof(buf));
+        if (!flag){
+            return  -1;
+        }
+        res.append(buf);
+        bzero(buf, sizeof(buf));
+        session_key_resp = _codec.tryDecode(res);
+        if(!session_key_resp.empty()){
+            break;
+        }
+    }
+    auto session_key_info = split_string(session_key_resp, "\r\n");
+    if (session_key_info[0] != "SESSION_KEY") {
+        return  -1;
+    }
+    _ctx._session_key = session_key_info[2];
+    // 会话密钥接受完成
+
+    //发送ok
+    auto ok_req = _codec.encode("OK");
+    ::write(_socket_sfd,ok_req.data(),ok_req.length());
+
+    return 1;
+}
+
+
+int SSLHandler::DoShakeHandsServer() {
+    std::string hello_resp;
+    std::string res;
+    char buf[1024];
+    bzero(buf, sizeof(1024));
+    while(true){
+        int flag = ::read(_socket_sfd, buf, sizeof(buf));
+        if (!flag){
+            return  -1;
+        }
+        res.append(buf);
+        bzero(buf, sizeof(buf));
+        hello_resp = _codec.tryDecode(res);
+        if(!hello_resp.empty()){
+            break;
+        }
+    }
+    auto hello_resp_info = split_string(hello_resp, "\r\n");
+    if(hello_resp_info[0] != "HELLO") {
+        return  -1;
+    }
+
+    auto server_ca_resp = _codec.encode("CA\r\n" + _ctx._i_ca.Dumps());
+    ::write(_socket_sfd,server_ca_resp.data(), server_ca_resp.length());
+
+    // 接受客户端ca
+    std::string client_ca_resp;
+    bzero(buf, sizeof(1024));
+    while(true){
+        int flag = ::read(_socket_sfd, buf, sizeof(buf));
+        if (!flag){
+            return  -1;
+        }
+        res.append(buf);
+        bzero(buf, sizeof(buf));
+        client_ca_resp = _codec.tryDecode(res);
+        if(!client_ca_resp.empty()){
+            break;
+        }
+    }
+    auto client_ca_info = split_string(client_ca_resp, "\r\n");
+    if(client_ca_info[0] != "CA" ){
+        return -1;
+    }
+    _ctx._t_ca.Loads(client_ca_info[1]);
+
+    //会话密钥
+    _ctx._session_key = "hello";
+    auto session_key_resp = _codec.encode(std::string("SESSION_KEY\r\n")+"1\r\n"+_ctx._session_key);
+    ::write(_socket_sfd, session_key_resp.data(), session_key_resp.length());
+
+    // 接受ok
+    std::string ok_resp;
+    bzero(buf, sizeof(1024));
+    while(true){
+        int flag = ::read(_socket_sfd, buf, sizeof(buf));
+        if (!flag){
+            return  -1;
+        }
+        res.append(buf);
+        bzero(buf, sizeof(buf));
+        ok_resp = _codec.tryDecode(res);
+        if(!ok_resp.empty()){
+            break;
+        }
+    }
+
+    auto ok_resp_info = split_string(ok_resp, "\r\n");
+    if (ok_resp_info[0] == "OK");
+    return  1;
+
 }

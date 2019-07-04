@@ -15,10 +15,13 @@ add_executable(net_safe
         src/aes.cpp
         src/aes.h
         src/rsa.cpp
-        tests/test_aes.cpp
         src/des.cpp
         src/rsa.h
-        tests/test_dh.cpp
         src/sha512.cpp
         src/sha512.h
-)
+        src/Codec.h
+        src/Codec.cpp
+        tests/test_aes.cpp
+        tests/ssl_server.cpp)
+
+

@@ -22,6 +22,6 @@ std::string LineCodec::tryDecode(std::string &data) {
     return "";
 }
 
-std::string encode(const std::string &data) {
+std::string LineCodec::encode(const std::string &data) {
     return data + "\r\n\r\n";
 };
