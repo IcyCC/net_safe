@@ -18,7 +18,7 @@ public:
     CA _i_ca; // 自己的证书
     std::string _session_key; // 会话密钥
 public:
-    SSLContext(const std::string& i_pub, const std::string& i_pri, CA &t_pub) :_i_pri(i_pri),  _t_ca(t_pub), _session_key("")
+    SSLContext(const std::string& i_pub, const std::string& i_pri, CA &t_ca) :_i_pri(i_pri),  _t_ca(t_ca), _session_key("")
     {}; //初始化
 
     std::string GetIPri(){
