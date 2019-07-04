@@ -41,8 +41,8 @@ int main(int argc, char *argv[])
     clnt_addr_size=sizeof(clnt_addr);
     clnt_sock=accept(serv_sock, (struct sockaddr*)&clnt_addr,&clnt_addr_size);
     auto ca = CA();
-    ca.Loads("5327_318047_89302 270166 270166 212741 212741 315071 109349 89302 255697 315587 185103 185103 212741 270166");
-    auto ssl = SSLHandler(clnt_sock, "5327_318047", "4343_318047", "199665013_7769", ca);
+    ca.Loads("5327_131669_44085 44511 10430 21968 30565 20006 44511 20006 43434 43434 47454");
+    auto ssl = SSLHandler(clnt_sock, "5327_131669", "33455_131669", "10651_56153", ca);
     ssl.DoShakeHandsServer();
     if(clnt_sock==-1)
         error_handling("accept() error");
