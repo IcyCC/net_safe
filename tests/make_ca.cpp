@@ -28,7 +28,7 @@ int main(){
         WriteString2FileAppend("../keys.txt", public_key);
         WriteString2FileAppend("../keys.txt", private_key);
         WriteString2FileAppend("../keys.txt", "");
-        std::string result = rsa_encrypt(ca_public_key, public_key);
+        std::string result = rsa_encrypt(public_key, ca_private_key);
         WriteString2FileAppend("../keys.txt", public_key +"_"+ result);
         WriteString2FileAppend("../keys.txt", "");
     }

@@ -11,6 +11,7 @@
 #include <errno.h>
 #include <unistd.h>
 #include "util.h"
+#include "aes.h"
 
 SSLHandler::SSLHandler(int socketfd, const std::string &pub, const std::string &pri, const std::string ca_pub, CA &i_ca) {
     _socket_sfd = socketfd;
@@ -162,3 +163,22 @@ int SSLHandler::DoShakeHandsServer() {
     return  1;
 
 }
+
+int SSLHandler::S_Read(std::string &buf) {
+    char buffer[1024];
+    bzero(buffer, sizeof(buffer));
+    while(true){
+        int flag = ::read(_socket_sfd, buffer, sizeof(buffer));
+        if (flag<=0&&errno != EINTR && errno != EAGAIN){
+            break;
+        }
+        _buffer.append(buffer);
+        bzero(buffer, sizeof(buffer));
+    }
+    std::string buffer_part = _codec.tryDecode(_buffer);
+    while( buffer_part!= "") {
+        std::vector<std::string> parts = split_string(buffer_part, "\r\n");
+        std::string words = Aes256::decrypt(parts[2], _ctx._session_key);
+    }
+}
+
