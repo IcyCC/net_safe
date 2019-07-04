@@ -229,8 +229,20 @@ void SHA512PadMessage(SHA512Context *context)
 	SHA512ProcessMessageBlock(context);
 }
 
-int getHash(const char *input,uint8_t *res)
+std::string CharToString(unsigned char *p)
 {
+    std::string str="";
+    int len=strlen((char*)p);
+    for(int i=0;i<len;++i){
+        str+=p[i];
+    } 
+    return str;
+}
+
+std::string getHash(const char *input)
+{
+	uint8_t res[64];
+	std::string hash="";
 	SHA512Context sha;
 	int i, j, err=0;
 	
@@ -242,5 +254,6 @@ int getHash(const char *input,uint8_t *res)
 	err = SHA512Input(&sha,(const unsigned char *) raw,strlen(raw));
 	err = SHA512Result(&sha, res);
 	
-	return err;
+	hash=CharToString(res);
+	return hash;
 }
