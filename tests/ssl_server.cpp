@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
     auto ca = CA();
     ca.Loads("5327_131669_44085 44511 10430 21968 30565 20006 44511 20006 43434 43434 47454");
     auto ssl = SSLHandler(clnt_sock, "5327_131669", "33455_131669", "10651_56153", ca);
-    ssl.DoShakeHandsServer();
+    auto s = ssl.DoShakeHandsServer();
     if(clnt_sock==-1)
         error_handling("accept() error");
 

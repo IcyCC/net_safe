@@ -5,6 +5,7 @@
 #include "SSLHandler.h"
 #include "Codec.h"
 #include <string>
+#include <iostream>
 #include<sys/socket.h>
 #include<cstdio>
 #include <sys/fcntl.h>
@@ -12,6 +13,8 @@
 #include <unistd.h>
 #include "util.h"
 #include "rsa.h"
+#include "aes.h"
+#include "sha512.h"
 
 SSLHandler::SSLHandler(int socketfd, const std::string &pub, const std::string &pri, const std::string ca_pub, CA &i_ca) {
     _socket_sfd = socketfd;
@@ -45,12 +48,13 @@ int SSLHandler::DoShakeHandsClient() {
     // 校验buffer
     auto res_ca_info = split_string(server_ca_resp, "\r\n");
     if (res_ca_info[0] != "CA"){
+        std::cout<<"非法参数"<<std::endl;
         return -1;
     }
-    CA server_ca;
-    server_ca.Loads(res_ca_info[1]);
-    if (!server_ca.Check(_ctx._ca_pub)) {
+    _ctx._t_ca.Loads(res_ca_info[1]);
+    if (!_ctx._t_ca.Check(_ctx._ca_pub)) {
         // ca证书未签名
+        std::cout<<"ca未签名"<<std::endl;
         return -1;
     }
 
@@ -74,10 +78,16 @@ int SSLHandler::DoShakeHandsClient() {
     }
     auto session_key_info = split_string(session_key_resp, "\r\n");
     if (session_key_info[0] != "SESSION_KEY") {
+        std::cout<<"非法参数"<<std::endl;
         return  -1;
     }
     auto session_key = rsa_decrypt(session_key_info[2], _ctx._i_pri);
-    // 校验hash
+    // 校验签名
+    auto session_key_sign = session_key_info[1];
+    if (rsa_decrypt(session_key_sign, _ctx._t_ca._pub) != session_key) {
+        std::cout<<"签名不通过"<<std::endl;
+        return  -1;
+    }
     _ctx._session_key = session_key;
     // 会话密钥接受完成
 
@@ -109,6 +119,7 @@ int SSLHandler::DoShakeHandsServer() {
     }
     auto hello_resp_info = split_string(hello_resp, "\r\n");
     if(hello_resp_info[0] != "HELLO") {
+        std::cout<<"非法参数"<<std::endl;
         return  -1;
     }
 
@@ -132,6 +143,7 @@ int SSLHandler::DoShakeHandsServer() {
     }
     auto client_ca_info = split_string(client_ca_resp, "\r\n");
     if(client_ca_info[0] != "CA" ){
+        std::cout<<"非法参数"<<std::endl;
         return -1;
     }
     _ctx._t_ca.Loads(client_ca_info[1]);
@@ -139,7 +151,8 @@ int SSLHandler::DoShakeHandsServer() {
     //会话密钥
     _ctx._session_key = "hello";
     auto session_key = rsa_encrypt(_ctx._session_key, _ctx._t_ca._pub);
-    auto session_key_resp = _codec.encode(std::string("SESSION_KEY\r\n")+"hash\r\n"+session_key);
+    auto session_key_sign = rsa_encrypt(session_key, _ctx._i_pri);
+    auto session_key_resp = _codec.encode(std::string("SESSION_KEY\r\n")+session_key_sign+"\r\n"+session_key);
     ::write(_socket_sfd, session_key_resp.data(), session_key_resp.length());
 
     // 接受ok
@@ -160,9 +173,34 @@ int SSLHandler::DoShakeHandsServer() {
 
     auto ok_resp_info = split_string(ok_resp, "\r\n");
     if (ok_resp_info[0] != "OK"){
+        std::cout<<"非法参数"<<std::endl;
         return -1;
     }
     _state = SSL_STATE ::TRANS;
     return  1;
 
 }
+
+std::string GenMsg(const std::string hash,const std::string s_data)
+{
+    std::string msg="64\r\n";
+    msg.append(hash);
+    msg.append("\r\n");
+    msg.append(s_data);
+    msg.append("\r\n\r\n");
+    return msg;
+}
+
+
+int SSLHandler::S_Write(const std::string s) {
+    uint8_t hashdata[64];
+    std::string hash=getHash(s.c_str());
+
+    std::string key=this->_ctx.GetSessionKey();
+    auto c = Aes256::encrypt(key, s);
+
+    std::string target=GenMsg(hash,c); /*生成消息格式*/
+
+    write(this->_socket_sfd,target.c_str(), target.length());
+    return target.length();
+} // 写数据 先对数据， 然后进行hash  消息格式：  哈希值长度 + '\r\n' +加密前hash值  + \r\n + 加密后的消息 '\r\n\r\n'
