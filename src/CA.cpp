@@ -6,13 +6,13 @@
 
 
 std::string CA::Dumps() {
-    return std::to_string(_pub) + "_" + _sing;
+    return _pub + "_" + _sing;
 }
 
 void CA::Loads(const std::string &s) {
     std::vector<std::string> parts = split_string(s, "_");
-    long pub  = atol(parts[0].c_str());
-    std::string sing = parts[1];
+    std::string pub  = parts[0]+parts[1];
+    std::string sing = parts[2];
     _pub = pub;
     _sing = sing;
 }
