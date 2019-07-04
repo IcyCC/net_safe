@@ -103,7 +103,7 @@ void get_public_key(std::string &public_key, std::string &private_key) {
     private_key = std::to_string(private_d) + "_" + std::to_string(key_n);
 }
 
-std::string rsa_encrypt(std::string &input, std::string public_key) {
+std::string rsa_encrypt(const std::string &input, const std::string& public_key) {
     std::vector<std::string> key_parts = split_string(public_key, "_");
     int public_e = atoi(key_parts[0].c_str());
     int public_n = atoi(key_parts[1].c_str());
@@ -120,7 +120,7 @@ std::string rsa_encrypt(std::string &input, std::string public_key) {
     return result;
 }
 
-std::string rsa_decrypt(std::string &input, std::string private_key) {
+std::string rsa_decrypt(const std::string &input, const std::string &private_key) {
     std::vector<std::string> key_parts = split_string(private_key, "_");
     int private_e = atoi(key_parts[0].c_str());
     int private_n = atoi(key_parts[1].c_str());
