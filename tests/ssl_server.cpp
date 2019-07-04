@@ -41,7 +41,7 @@ int main(int argc, char *argv[])
     clnt_addr_size=sizeof(clnt_addr);
     clnt_sock=accept(serv_sock, (struct sockaddr*)&clnt_addr,&clnt_addr_size);
     auto ca = CA();
-    auto ssl = SSLHandler(clnt_sock, "a", "b", "ca", ca);
+    auto ssl = SSLHandler(clnt_sock, "5327_318047", "4343_318047", "199665013_7769", ca);
     ssl.DoShakeHandsServer();
     if(clnt_sock==-1)
         error_handling("accept() error");

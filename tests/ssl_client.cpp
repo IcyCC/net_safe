@@ -41,7 +41,7 @@ int main(int argc,char *argv[])
         exit(1);
     }
     auto ca = CA();
-    auto ssl = SSLHandler(sockfd, "d", "e", "c", ca);
+    auto ssl = SSLHandler(sockfd, "2665_131237", "23941_131237", "199665013_7769", ca);
     auto s = ssl.DoShakeHandsClient();
 
     while(1)
