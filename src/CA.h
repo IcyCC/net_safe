@@ -11,12 +11,12 @@
 
 class CA {
 public:
-    long _pub;
+    std::string _pub;
     std::string _sing;
 public:
     CA() {};
 
-    CA(long _pub, std::string _sing) : _pub(_pub), _sing(_sing) {};
+    CA(std::string _pub, std::string _sing) : _pub(_pub), _sing(_sing) {};
 
     std::string Dumps();
 
