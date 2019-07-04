@@ -74,7 +74,7 @@ public:
     // REQ: OK
 
     int S_Write(const std::string s); // 写数据 先对数据， 然后进行hash  消息格式：  哈希值长度 + '\r\n' +加密前hash值  + \r\n + 加密后的消息 '\r\n\r\n'
-    int S_Read(char *buf, int size); // 先对, 然后取出消息解密 再 数据进行校验
+    int S_Read(std::string &buf); // 先对, 然后取出消息解密 再 数据进行校验
 
     SSL_STATE GetSSLState() {
         return _state;

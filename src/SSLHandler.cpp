@@ -12,8 +12,8 @@
 #include <errno.h>
 #include <unistd.h>
 #include "util.h"
-#include "rsa.h"
 #include "aes.h"
+#include "rsa.h"
 #include "sha512.h"
 
 SSLHandler::SSLHandler(int socketfd, const std::string &pub, const std::string &pri, const std::string ca_pub, CA &i_ca) {
@@ -180,6 +180,32 @@ int SSLHandler::DoShakeHandsServer() {
     return  1;
 
 }
+
+int SSLHandler::S_Read(std::string &buf) {
+    char buffer[1024];
+    bzero(buffer, sizeof(buffer));
+    while (true) {
+        int flag = ::read(_socket_sfd, buffer, sizeof(buffer));
+        if (flag <= 0 && errno != EINTR && errno != EAGAIN) {
+            break;
+        }
+        _buffer.append(buffer);
+        bzero(buffer, sizeof(buffer));
+    }
+    std::string buffer_part = _codec.tryDecode(_buffer);
+    while (buffer_part != "") {
+        std::vector<std::string> parts = split_string(buffer_part, "\r\n");
+        std::string words = Aes256::decrypt(parts[2], _ctx._session_key);
+        std::string words_hash = getHash(words.c_str());
+        if(words_hash != parts[1]) {
+            return -1;
+        }
+        buf.append(words);
+        buf.append("\r\n\r\n");
+    }
+}
+
+
 
 std::string GenMsg(const std::string hash,const std::string s_data)
 {
