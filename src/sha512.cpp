@@ -256,5 +256,5 @@ std::string getHash(const char *input)
 	err = SHA512Result(&sha, res);
 	
 	hash=CharToString(res);
-	return hash;
+	return hash.substr(0,64);
 }

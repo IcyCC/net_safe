@@ -157,12 +157,12 @@ int SSLHandler::DoShakeHandsServer() {
     std::cout<<"握手：接受CA "<<client_ca_info[1]<<std::endl;
 
     //会话密钥
-    _ctx._session_key = "hello";
+    _ctx._session_key = RandStr(16);
     auto session_key_sign = rsa_encrypt(_ctx._session_key, _ctx._i_pri);
     auto session_key_en = rsa_encrypt(_ctx._session_key, _ctx._t_ca._pub);
     auto session_key_resp = _codec.encode(std::string("SESSION_KEY\r\n")+session_key_sign+"\r\n"+session_key_en);
     ::write(_socket_sfd, session_key_resp.data(), session_key_resp.length());
-    std::cout<<"握手：发送hello "<<std::endl;
+    std::cout<<"握手：发送会话密钥 "<<_ctx._session_key<<std::endl;
     // 接受ok
     std::string ok_resp;
     bzero(buf, sizeof(buf));
@@ -213,7 +213,9 @@ int SSLHandler::S_Read(std::string &buf) {
         std::string words = Aes256::decrypt(_ctx._session_key,parts[2]);
         std::string words_hash = getHash(words.c_str());
         words_hash = words_hash.substr(0, 64);
-        if(words_hash != parts[1]) {
+
+        if(words_hash != parts[1].substr(0,64)) {
+            std::cout<<"消息检查失败"<<std::endl;
             return -1;
         }
         buf.append(words);
