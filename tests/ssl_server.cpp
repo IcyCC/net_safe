@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <iostream>
 #include <arpa/inet.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -47,7 +48,14 @@ int main(int argc, char *argv[])
     if(clnt_sock==-1)
         error_handling("accept() error");
 
-    write(clnt_sock, message, sizeof(message));
+    std::string msg;
+    ssl.S_Read(msg);
+
+    std::cout<<msg<<std::endl;
+
+    ssl.S_Write(message);
+
+
     close(clnt_sock);
     close(serv_sock);
     return 0;

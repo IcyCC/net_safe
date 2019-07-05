@@ -242,7 +242,8 @@ std::string CharToString(unsigned char *p)
 std::string getHash(const char *input)
 {
 	uint8_t res[64];
-	std::string hash="";
+	bzero(res, 64);
+	std::string hash;
 	SHA512Context sha;
 	int i, j, err=0;
 	

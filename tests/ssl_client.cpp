@@ -45,17 +45,11 @@ int main(int argc,char *argv[])
     auto ssl = SSLHandler(sockfd, "45257_227891", "82793_227891", "10651_56153", ca);
     auto s = ssl.DoShakeHandsClient();
 
-    while(1)
-    {
-        printf("Please input your word:\n");
-        scanf("%s",sendbuffer);
-        printf("\n");
-        if(strcmp(sendbuffer,"quit")==0)
-            break;
-        send(sockfd,sendbuffer,sizeof(sendbuffer),0);
-        recv(sockfd,recvbuffer,200,0);
-        printf("recv data of my world is :%s\n",recvbuffer);
-    }
+    std::string read_buf;
+    printf("\n");
+    ssl.S_Write("HELLO");
+    ssl.S_Read(read_buf);
+    printf("recv data of my world is :%s\n",read_buf.c_str());
     // if((nbytes=read(sockfd,buffer,1024))==-1)
     //{
 // fprintf(stderr,"read error:%s\n",strerror(errno));

@@ -150,9 +150,9 @@ int SSLHandler::DoShakeHandsServer() {
 
     //会话密钥
     _ctx._session_key = "hello";
-    auto session_key = rsa_encrypt(_ctx._session_key, _ctx._t_ca._pub);
-    auto session_key_sign = rsa_encrypt(session_key, _ctx._i_pri);
-    auto session_key_resp = _codec.encode(std::string("SESSION_KEY\r\n")+session_key_sign+"\r\n"+session_key);
+    auto session_key_sign = rsa_encrypt(_ctx._session_key, _ctx._i_pri);
+    auto session_key_en = rsa_encrypt(_ctx._session_key, _ctx._t_ca._pub);
+    auto session_key_resp = _codec.encode(std::string("SESSION_KEY\r\n")+session_key_sign+"\r\n"+session_key_en);
     ::write(_socket_sfd, session_key_resp.data(), session_key_resp.length());
 
     // 接受ok
@@ -186,23 +186,30 @@ int SSLHandler::S_Read(std::string &buf) {
     bzero(buffer, sizeof(buffer));
     while (true) {
         int flag = ::read(_socket_sfd, buffer, sizeof(buffer));
-        if (flag <= 0 && errno != EINTR && errno != EAGAIN) {
+        if (flag <= 0 && errno != EINTR && errno != EAGAIN ) {
             break;
         }
         _buffer.append(buffer);
         bzero(buffer, sizeof(buffer));
+        if (flag > 0 && flag < sizeof(buffer)) {
+            break;
+        }
     }
-    std::string buffer_part = _codec.tryDecode(_buffer);
-    while (buffer_part != "") {
+    std::string buffer_part = "";
+    buffer_part = _codec.tryDecode(_buffer);
+    while(buffer_part != ""){
+
         std::vector<std::string> parts = split_string(buffer_part, "\r\n");
-        std::string words = Aes256::decrypt(parts[2], _ctx._session_key);
+        std::string words = Aes256::decrypt(_ctx._session_key,parts[2]);
         std::string words_hash = getHash(words.c_str());
+        words_hash = words_hash.substr(0, 64);
         if(words_hash != parts[1]) {
             return -1;
         }
         buf.append(words);
-        buf.append("\r\n\r\n");
-    }
+        buffer_part = _codec.tryDecode(_buffer);
+    };
+    return 0;
 }
 
 
@@ -213,7 +220,6 @@ std::string GenMsg(const std::string hash,const std::string s_data)
     msg.append(hash);
     msg.append("\r\n");
     msg.append(s_data);
-    msg.append("\r\n\r\n");
     return msg;
 }
 
@@ -225,8 +231,9 @@ int SSLHandler::S_Write(const std::string s) {
     std::string key=this->_ctx.GetSessionKey();
     auto c = Aes256::encrypt(key, s);
 
-    std::string target=GenMsg(hash,c); /*生成消息格式*/
+    std::string target= _codec.encode(GenMsg(hash,c)); /*生成消息格式*/
 
     write(this->_socket_sfd,target.c_str(), target.length());
+    Aes256::decrypt(key, c);
     return target.length();
 } // 写数据 先对数据， 然后进行hash  消息格式：  哈希值长度 + '\r\n' +加密前hash值  + \r\n + 加密后的消息 '\r\n\r\n'

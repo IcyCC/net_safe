@@ -4,7 +4,7 @@
 #include <string>
 
 
-typedef std::string ByteArray;
+typedef std::vector<unsigned char> ByteArray;
 
 #define BLOCK_SIZE 16
 
@@ -14,10 +14,13 @@ public:
     Aes256(const ByteArray& key);
     ~Aes256();
 
-    static ByteArray encrypt(const ByteArray& key, const ByteArray& plain);
-    static ByteArray encrypt(const ByteArray& key, const unsigned char* plain, const long plain_length);
-    static ByteArray decrypt(const ByteArray& key, const ByteArray& encrypted);
-    static ByteArray decrypt(const ByteArray& key, const unsigned char* encrypted, const long encrypted_length);
+    static std::string byte2str_raw(const ByteArray & b);
+
+    static ByteArray str2byte_raw(const std::string & b);
+
+
+    static std::string encrypt(const std::string& key, const std::string& plain);
+    static std::string decrypt(const std::string& key, const std::string& encrypted);
 
     long encrypt_start(const long plain_length, ByteArray& encrypted);
     long encrypt_continue(const ByteArray& plain, ByteArray& encrypted);

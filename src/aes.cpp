@@ -97,56 +97,52 @@ Aes256::Aes256(const ByteArray& key)
 Aes256::~Aes256()
 {}
 
-ByteArray Aes256::encrypt(const ByteArray& key, const ByteArray& plain)
-{
-	std::string encrypted;
-	Aes256 aes(key);
-
-	aes.encrypt_start(plain.size(), encrypted);
-	aes.encrypt_continue(plain, encrypted);
-	aes.encrypt_end(encrypted);
-
-	return encrypted;
+std::string Aes256::byte2str_raw(const ByteArray &b) {
+	std::string res;
+	for(auto i : b){
+		res.push_back(i);
+	}
+	return res;
 }
 
-ByteArray Aes256::encrypt(const ByteArray& key, const unsigned char* plain, const long plain_length)
-{
-
-	ByteArray  encrypted;
-	Aes256 aes(key);
-
-	aes.encrypt_start(plain_length, encrypted);
-	aes.encrypt_continue(plain, plain_length, encrypted);
-	aes.encrypt_end(encrypted);
-
-	return encrypted;
+ByteArray Aes256::str2byte_raw(const std::string &b) {
+	ByteArray res;
+	for(auto i:b){
+		res.push_back(i);
+	}
+	return res;
 }
 
-ByteArray Aes256::decrypt(const ByteArray& key, const ByteArray& encrypted)
+std::string Aes256::encrypt(const std::string& key, const std::string& plain)
+{
+	ByteArray encrypted;
+	Aes256 aes(str2byte_raw(key));
+
+	auto plain_b = str2byte_raw(plain);
+	aes.encrypt_start(plain_b.size(), encrypted);
+	aes.encrypt_continue(plain_b, encrypted);
+	aes.encrypt_end(encrypted);
+
+	return byte2str_raw(encrypted);
+}
+
+
+std::string Aes256::decrypt(const std::string& key, const std::string& encrypted)
 {
 	ByteArray plain;
 
-	Aes256 aes(key);
+	Aes256 aes(str2byte_raw(key));
 
-	aes.decrypt_start(encrypted.size());
-	aes.decrypt_continue(encrypted, plain);
+	auto encrypted_b = str2byte_raw(encrypted);
+
+	aes.decrypt_start(encrypted_b.size());
+	aes.decrypt_continue(encrypted_b, plain);
 	aes.decrypt_end(plain);
 
-	return plain;
+	return byte2str_raw(plain);
 }
 
-ByteArray Aes256::decrypt(const ByteArray& key, const unsigned char* encrypted, const long encrypted_length)
-{
-	Aes256 aes(key);
-	std::string plain;
 
-
-	aes.decrypt_start(encrypted_length);
-	aes.decrypt_continue(encrypted, encrypted_length, plain);
-	aes.decrypt_end(plain);
-
-	return plain;
-}
 
 long Aes256::encrypt_start(const long plain_length, ByteArray& encrypted)
 {
@@ -155,7 +151,7 @@ long Aes256::encrypt_start(const long plain_length, ByteArray& encrypted)
 	// Generate salt
 	ByteArray::iterator it = m_salt.begin(), itEnd = m_salt.end();
 	while (it != itEnd)
-		*(it++) = (rand() & 0xFF);
+		*(it++) = (55 & 0xFF);
 
 	// Calculate padding
 	long padding = 0;
