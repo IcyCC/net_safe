@@ -27,6 +27,7 @@ SSLHandler::SSLHandler(int socketfd, const std::string &pub, const std::string &
 int SSLHandler::DoShakeHandsClient() {
     _state = SSL_STATE ::SHAKEHANDS;
     auto hello = _codec.encode("HELLO");//发送hello
+    std::cout<<"握手： 发送 HELLO"<<std::endl;
     ::write(_socket_sfd, hello.c_str(), hello.length());
     std::string server_ca_resp;
     std::string res;
@@ -51,6 +52,7 @@ int SSLHandler::DoShakeHandsClient() {
         std::cout<<"非法参数"<<std::endl;
         return -1;
     }
+    std::cout<<"握手：接受证书 "<<res_ca_info[1]<<std::endl;
     _ctx._t_ca.Loads(res_ca_info[1]);
     if (!_ctx._t_ca.Check(_ctx._ca_pub)) {
         // ca证书未签名
@@ -59,6 +61,7 @@ int SSLHandler::DoShakeHandsClient() {
     }
 
     auto self_ca = _codec.encode("CA\r\n"+_ctx._i_ca.Dumps());
+    std::cout<<"握手：发送证书 "<<std::endl;
     ::write(_socket_sfd, self_ca.data(), self_ca.length()); // 发送自己的证书
     std::string session_key_resp;
 
@@ -90,6 +93,7 @@ int SSLHandler::DoShakeHandsClient() {
     }
     _ctx._session_key = session_key;
     // 会话密钥接受完成
+    std::cout<<"握手：接受会话密钥 "<<session_key<<std::endl;
 
     //发送ok
     auto ok_req = _codec.encode("OK");
@@ -123,9 +127,12 @@ int SSLHandler::DoShakeHandsServer() {
         return  -1;
     }
 
+    std::cout<<"握手：接受hello "<<std::endl;
+
     auto server_ca_resp = _codec.encode("CA\r\n" + _ctx._i_ca.Dumps());
     ::write(_socket_sfd,server_ca_resp.data(), server_ca_resp.length());
 
+    std::cout<<"握手：发送CA "<<std::endl;
     // 接受客户端ca
     std::string client_ca_resp;
     bzero(buf, sizeof(buf));
@@ -147,6 +154,7 @@ int SSLHandler::DoShakeHandsServer() {
         return -1;
     }
     _ctx._t_ca.Loads(client_ca_info[1]);
+    std::cout<<"握手：接受CA "<<client_ca_info[1]<<std::endl;
 
     //会话密钥
     _ctx._session_key = "hello";
@@ -154,7 +162,7 @@ int SSLHandler::DoShakeHandsServer() {
     auto session_key_en = rsa_encrypt(_ctx._session_key, _ctx._t_ca._pub);
     auto session_key_resp = _codec.encode(std::string("SESSION_KEY\r\n")+session_key_sign+"\r\n"+session_key_en);
     ::write(_socket_sfd, session_key_resp.data(), session_key_resp.length());
-
+    std::cout<<"握手：发送hello "<<std::endl;
     // 接受ok
     std::string ok_resp;
     bzero(buf, sizeof(buf));
@@ -172,10 +180,12 @@ int SSLHandler::DoShakeHandsServer() {
     }
 
     auto ok_resp_info = split_string(ok_resp, "\r\n");
+
     if (ok_resp_info[0] != "OK"){
         std::cout<<"非法参数"<<std::endl;
         return -1;
     }
+    std::cout<<"握手：接受ok "<<std::endl;
     _state = SSL_STATE ::TRANS;
     return  1;
 
@@ -198,7 +208,7 @@ int SSLHandler::S_Read(std::string &buf) {
     std::string buffer_part = "";
     buffer_part = _codec.tryDecode(_buffer);
     while(buffer_part != ""){
-
+        std::cout<<"接受加密数据： "<<buffer_part<<std::endl;
         std::vector<std::string> parts = split_string(buffer_part, "\r\n");
         std::string words = Aes256::decrypt(_ctx._session_key,parts[2]);
         std::string words_hash = getHash(words.c_str());
@@ -232,7 +242,7 @@ int SSLHandler::S_Write(const std::string s) {
     auto c = Aes256::encrypt(key, s);
 
     std::string target= _codec.encode(GenMsg(hash,c)); /*生成消息格式*/
-
+    std::cout<<"发送加密数据： "<<target<<std::endl;
     write(this->_socket_sfd,target.c_str(), target.length());
     Aes256::decrypt(key, c);
     return target.length();
